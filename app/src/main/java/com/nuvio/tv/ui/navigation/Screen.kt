@@ -1,9 +1,38 @@
 package com.nuvio.tv.ui.navigation
 
+import java.net.URLEncoder
+
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
     data object Detail : Screen("detail/{itemId}/{itemType}") {
         fun createRoute(itemId: String, itemType: String) = "detail/$itemId/$itemType"
+    }
+    data object Stream : Screen("stream/{videoId}/{contentType}/{title}?poster={poster}&backdrop={backdrop}&logo={logo}&season={season}&episode={episode}&episodeName={episodeName}&genres={genres}&year={year}") {
+        private fun encode(value: String): String = 
+            URLEncoder.encode(value, "UTF-8").replace("+", "%20")
+        
+        fun createRoute(
+            videoId: String,
+            contentType: String,
+            title: String,
+            poster: String? = null,
+            backdrop: String? = null,
+            logo: String? = null,
+            season: Int? = null,
+            episode: Int? = null,
+            episodeName: String? = null,
+            genres: String? = null,
+            year: String? = null
+        ): String {
+            val encodedTitle = encode(title)
+            val encodedPoster = poster?.let { encode(it) } ?: ""
+            val encodedBackdrop = backdrop?.let { encode(it) } ?: ""
+            val encodedLogo = logo?.let { encode(it) } ?: ""
+            val encodedEpisodeName = episodeName?.let { encode(it) } ?: ""
+            val encodedGenres = genres?.let { encode(it) } ?: ""
+            val encodedYear = year?.let { encode(it) } ?: ""
+            return "stream/$videoId/$contentType/$encodedTitle?poster=$encodedPoster&backdrop=$encodedBackdrop&logo=$encodedLogo&season=${season ?: ""}&episode=${episode ?: ""}&episodeName=$encodedEpisodeName&genres=$encodedGenres&year=$encodedYear"
+        }
     }
     data object Search : Screen("search")
     data object Settings : Screen("settings")

@@ -38,7 +38,19 @@ import com.nuvio.tv.ui.theme.NuvioColors
 fun MetaDetailsScreen(
     viewModel: MetaDetailsViewModel = hiltViewModel(),
     onBackPress: () -> Unit,
-    onPlayClick: (videoId: String) -> Unit = {}
+    onPlayClick: (
+        videoId: String,
+        contentType: String,
+        title: String,
+        poster: String?,
+        backdrop: String?,
+        logo: String?,
+        season: Int?,
+        episode: Int?,
+        episodeName: String?,
+        genres: String?,
+        year: String?
+    ) -> Unit = { _, _, _, _, _, _, _, _, _, _, _ -> }
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -67,14 +79,48 @@ fun MetaDetailsScreen(
                 )
             }
             uiState.meta != null -> {
+                val meta = uiState.meta!!
+                val genresString = meta.genres.takeIf { it.isNotEmpty() }?.joinToString(" • ")
+                val yearString = meta.releaseInfo
+                
                 MetaDetailsContent(
-                    meta = uiState.meta!!,
+                    meta = meta,
                     seasons = uiState.seasons,
                     selectedSeason = uiState.selectedSeason,
                     episodesForSeason = uiState.episodesForSeason,
                     onSeasonSelected = { viewModel.onEvent(MetaDetailsEvent.OnSeasonSelected(it)) },
-                    onEpisodeClick = { viewModel.onEvent(MetaDetailsEvent.OnEpisodeClick(it)) },
-                    onPlayClick = { onPlayClick(it) }
+                    onEpisodeClick = { video ->
+                        // Navigate to stream screen for episode
+                        onPlayClick(
+                            video.id,
+                            meta.type.toApiString(),
+                            meta.name,
+                            video.thumbnail ?: meta.poster,
+                            meta.background,
+                            meta.logo,
+                            video.season,
+                            video.episode,
+                            video.title,
+                            null,
+                            null
+                        )
+                    },
+                    onPlayClick = { videoId ->
+                        // Navigate to stream screen for movie
+                        onPlayClick(
+                            videoId,
+                            meta.type.toApiString(),
+                            meta.name,
+                            meta.poster,
+                            meta.background,
+                            meta.logo,
+                            null,
+                            null,
+                            null,
+                            genresString,
+                            yearString
+                        )
+                    }
                 )
             }
         }

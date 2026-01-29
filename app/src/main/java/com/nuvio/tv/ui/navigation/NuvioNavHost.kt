@@ -11,6 +11,7 @@ import com.nuvio.tv.ui.screens.home.HomeScreen
 import com.nuvio.tv.ui.screens.addon.AddonManagerScreen
 import com.nuvio.tv.ui.screens.search.SearchScreen
 import com.nuvio.tv.ui.screens.settings.SettingsScreen
+import com.nuvio.tv.ui.screens.stream.StreamScreen
 
 @Composable
 fun NuvioNavHost(
@@ -38,9 +39,80 @@ fun NuvioNavHost(
         ) { backStackEntry ->
             MetaDetailsScreen(
                 onBackPress = { navController.popBackStack() },
-                onPlayClick = { videoId ->
-                    // Navigate to player or stream selection
-                    // TODO: Implement stream selection screen
+                onPlayClick = { videoId, contentType, title, poster, backdrop, logo, season, episode, episodeName, genres, year ->
+                    navController.navigate(
+                        Screen.Stream.createRoute(
+                            videoId = videoId,
+                            contentType = contentType,
+                            title = title,
+                            poster = poster,
+                            backdrop = backdrop,
+                            logo = logo,
+                            season = season,
+                            episode = episode,
+                            episodeName = episodeName,
+                            genres = genres,
+                            year = year
+                        )
+                    )
+                }
+            )
+        }
+
+        composable(
+            route = Screen.Stream.route,
+            arguments = listOf(
+                navArgument("videoId") { type = NavType.StringType },
+                navArgument("contentType") { type = NavType.StringType },
+                navArgument("title") { type = NavType.StringType },
+                navArgument("poster") { 
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("backdrop") { 
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("logo") { 
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("season") { 
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("episode") { 
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("episodeName") { 
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("genres") { 
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("year") { 
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) {
+            StreamScreen(
+                onBackPress = { navController.popBackStack() },
+                onStreamSelected = { playbackInfo ->
+                    // TODO: Navigate to player or handle stream playback
+                    // For now, just print the playback info
+                    android.util.Log.d("StreamScreen", "Selected stream: ${playbackInfo.url}")
                 }
             )
         }

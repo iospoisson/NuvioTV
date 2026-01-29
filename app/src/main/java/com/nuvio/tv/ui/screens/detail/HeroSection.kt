@@ -64,9 +64,11 @@ fun HeroContentSection(
                     model = meta.logo,
                     contentDescription = meta.name,
                     modifier = Modifier
-                        .height(120.dp)
+                        .height(100.dp)
+                        .fillMaxWidth(0.4f)
                         .padding(bottom = 16.dp),
-                    contentScale = ContentScale.Fit
+                    contentScale = ContentScale.Fit,
+                    alignment = Alignment.CenterStart
                 )
             } else {
                 Text(
