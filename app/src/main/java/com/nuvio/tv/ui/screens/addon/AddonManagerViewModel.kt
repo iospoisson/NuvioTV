@@ -86,9 +86,37 @@ class AddonManagerViewModel @Inject constructor(
         }
     }
 
+    fun moveAddonUp(baseUrl: String) {
+        reorderAddon(baseUrl, -1)
+    }
+
+    fun moveAddonDown(baseUrl: String) {
+        reorderAddon(baseUrl, 1)
+    }
+
+    private fun reorderAddon(baseUrl: String, direction: Int) {
+        val current = _uiState.value.installedAddons
+        val index = current.indexOfFirst { it.baseUrl == baseUrl }
+        if (index == -1) return
+
+        val newIndex = index + direction
+        if (newIndex !in current.indices) return
+
+        val reordered = current.toMutableList().apply {
+            val item = removeAt(index)
+            add(newIndex, item)
+        }
+
+        viewModelScope.launch {
+            addonRepository.setAddonOrder(reordered.map { it.baseUrl })
+        }
+    }
+
     private fun observeInstalledAddons() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            if (_uiState.value.installedAddons.isEmpty()) {
+                _uiState.update { it.copy(isLoading = true) }
+            }
             addonRepository.getInstalledAddons()
                 .catch { error ->
                     _uiState.update { it.copy(isLoading = false, error = error.message) }

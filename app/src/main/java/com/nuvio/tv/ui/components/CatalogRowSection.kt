@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
@@ -98,9 +99,11 @@ fun CatalogRowSection(
         ) {
             Column {
                 Text(
-                    text = catalogRow.catalogName,
+                    text = "${catalogRow.catalogName.replaceFirstChar { it.uppercase() }} - ${catalogRow.type.toApiString().replaceFirstChar { it.uppercase() }}",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = NuvioColors.TextPrimary
+                    color = NuvioColors.TextPrimary,
+                    maxLines = 3,
+                    overflow = TextOverflow.Clip
                 )
                 Text(
                     text = "from ${catalogRow.addonName}",

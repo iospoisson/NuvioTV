@@ -150,10 +150,10 @@ class MainActivity : ComponentActivity() {
                                     }
                                     Spacer(modifier = Modifier.weight(1f))
                                     val itemColors = NavigationDrawerItemDefaults.colors(
-                                        selectedContainerColor = NuvioColors.FocusBackground,
+                                        selectedContainerColor = NuvioColors.BackgroundCard,
                                         focusedContainerColor = NuvioColors.FocusBackground,
                                         pressedContainerColor = NuvioColors.FocusBackground,
-                                        selectedContentColor = NuvioColors.FocusRing,
+                                        selectedContentColor = NuvioColors.TextPrimary,
                                         focusedContentColor = NuvioColors.FocusRing,
                                         pressedContentColor = NuvioColors.FocusRing
                                     )

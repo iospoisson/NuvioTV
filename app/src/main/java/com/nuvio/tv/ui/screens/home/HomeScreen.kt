@@ -21,6 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.tv.material3.ExperimentalTvMaterial3Api
+import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.Text
 import com.nuvio.tv.ui.components.CatalogRowSection
 import com.nuvio.tv.ui.components.ContinueWatchingSection
 import com.nuvio.tv.ui.components.ErrorState
@@ -103,6 +105,30 @@ fun HomeScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     LoadingIndicator()
+                }
+            }
+            uiState.error == "No addons installed" && uiState.catalogRows.isEmpty() -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No addons installed. Add one to get started.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = NuvioColors.TextSecondary
+                    )
+                }
+            }
+            uiState.error == "No catalog addons installed" && uiState.catalogRows.isEmpty() -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No catalog addons installed. Install a catalog addon to see content.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = NuvioColors.TextSecondary
+                    )
                 }
             }
             uiState.error != null && uiState.catalogRows.isEmpty() -> {

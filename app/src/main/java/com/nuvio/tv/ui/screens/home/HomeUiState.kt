@@ -8,7 +8,8 @@ data class HomeUiState(
     val continueWatchingItems: List<WatchProgress> = emptyList(),
     val isLoading: Boolean = true,
     val error: String? = null,
-    val selectedItemId: String? = null
+    val selectedItemId: String? = null,
+    val installedAddonsCount: Int = 0
 )
 
 sealed class HomeEvent {

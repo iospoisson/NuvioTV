@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -39,14 +39,14 @@ class HomeViewModel @Inject constructor(
 
     init {
         loadContinueWatching()
-        loadAllCatalogs()
+        observeInstalledAddons()
     }
 
     fun onEvent(event: HomeEvent) {
         when (event) {
             is HomeEvent.OnItemClick -> navigateToDetail(event.itemId, event.itemType)
             is HomeEvent.OnLoadMoreCatalog -> loadMoreCatalogItems(event.catalogId, event.addonId, event.type)
-            HomeEvent.OnRetry -> loadAllCatalogs()
+            HomeEvent.OnRetry -> viewModelScope.launch { loadAllCatalogs(addonsCache) }
         }
     }
 
@@ -58,48 +58,61 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun loadAllCatalogs() {
+    private fun observeInstalledAddons() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            catalogOrder.clear()
-            catalogsMap.clear()
-
-            try {
-                val addons = addonRepository.getInstalledAddons().first()
-                addonsCache = addons
-
-                if (addons.isEmpty()) {
-                    _uiState.update { it.copy(isLoading = false, error = "No addons installed") }
-                    return@launch
+            addonRepository.getInstalledAddons()
+                .distinctUntilChanged { old, new ->
+                    old.map { it.id } == new.map { it.id }
                 }
-
-                // Build catalog order based on addon manifest order
-                addons.forEach { addon ->
-                    addon.catalogs
-                        .filterNot { it.isSearchOnlyCatalog() }
-                        .forEach { catalog ->
-                        val key = catalogKey(
-                            addonId = addon.id,
-                            type = catalog.type.toApiString(),
-                            catalogId = catalog.id
-                        )
-                        if (key !in catalogOrder) {
-                            catalogOrder.add(key)
-                        }
-                        }
+                .collectLatest { addons ->
+                    addonsCache = addons
+                    loadAllCatalogs(addons)
                 }
+        }
+    }
 
-                // Load catalogs
-                addons.forEach { addon ->
-                    addon.catalogs
-                        .filterNot { it.isSearchOnlyCatalog() }
-                        .forEach { catalog ->
-                            loadCatalog(addon, catalog)
-                        }
-                }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = e.message) }
+    private suspend fun loadAllCatalogs(addons: List<Addon>) {
+        _uiState.update { it.copy(isLoading = true, error = null, installedAddonsCount = addons.size) }
+        catalogOrder.clear()
+        catalogsMap.clear()
+
+        try {
+            if (addons.isEmpty()) {
+                _uiState.update { it.copy(isLoading = false, error = "No addons installed") }
+                return
             }
+
+            // Build catalog order based on addon manifest order
+            addons.forEach { addon ->
+                addon.catalogs
+                    .filterNot { it.isSearchOnlyCatalog() }
+                    .forEach { catalog ->
+                    val key = catalogKey(
+                        addonId = addon.id,
+                        type = catalog.type.toApiString(),
+                        catalogId = catalog.id
+                    )
+                    if (key !in catalogOrder) {
+                        catalogOrder.add(key)
+                    }
+                    }
+            }
+
+            if (catalogOrder.isEmpty()) {
+                _uiState.update { it.copy(isLoading = false, error = "No catalog addons installed") }
+                return
+            }
+
+            // Load catalogs
+            addons.forEach { addon ->
+                addon.catalogs
+                    .filterNot { it.isSearchOnlyCatalog() }
+                    .forEach { catalog ->
+                        loadCatalog(addon, catalog)
+                    }
+            }
+        } catch (e: Exception) {
+            _uiState.update { it.copy(isLoading = false, error = e.message) }
         }
     }
 

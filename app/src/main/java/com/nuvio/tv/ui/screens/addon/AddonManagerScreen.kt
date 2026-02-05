@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.TextField
@@ -22,10 +25,13 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.text.KeyboardActions
@@ -34,10 +40,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.tv.foundation.lazy.list.TvLazyColumn
-import androidx.tv.foundation.lazy.list.items
+import androidx.tv.foundation.lazy.list.itemsIndexed
 import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
+import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.nuvio.tv.domain.model.Addon
@@ -52,6 +59,7 @@ fun AddonManagerScreen(
     val uiState by viewModel.uiState.collectAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+    val installButtonFocusRequester = remember { FocusRequester() }
 
     Box(
         modifier = Modifier
@@ -104,6 +112,7 @@ fun AddonManagerScreen(
                                         viewModel.installAddon()
                                         keyboardController?.hide()
                                         focusManager.clearFocus(force = true)
+                                        installButtonFocusRequester.requestFocus()
                                     }
                                 ),
                                 colors = TextFieldDefaults.colors(
@@ -119,6 +128,7 @@ fun AddonManagerScreen(
                             Button(
                                 onClick = viewModel::installAddon,
                                 enabled = !uiState.isInstalling,
+                                modifier = Modifier.focusRequester(installButtonFocusRequester),
                                 colors = ButtonDefaults.colors(
                                     containerColor = NuvioColors.BackgroundCard,
                                     contentColor = NuvioColors.TextPrimary,
@@ -154,7 +164,7 @@ fun AddonManagerScreen(
                         color = NuvioColors.TextPrimary
                     )
                     Spacer(modifier = Modifier.width(12.dp))
-                    if (uiState.isLoading) {
+                    if (uiState.isLoading && uiState.installedAddons.isEmpty()) {
                         LoadingIndicator(modifier = Modifier.height(24.dp))
                     }
                 }
@@ -169,12 +179,16 @@ fun AddonManagerScreen(
                     )
                 }
             } else {
-                items(
+                itemsIndexed(
                     items = uiState.installedAddons,
-                    key = { addon -> addon.id }
-                ) { addon ->
+                    key = { _, addon -> addon.id }
+                ) { index, addon ->
                     AddonCard(
                         addon = addon,
+                        canMoveUp = index > 0,
+                        canMoveDown = index < uiState.installedAddons.lastIndex,
+                        onMoveUp = { viewModel.moveAddonUp(addon.baseUrl) },
+                        onMoveDown = { viewModel.moveAddonDown(addon.baseUrl) },
                         onRemove = { viewModel.removeAddon(addon.baseUrl) }
                     )
                 }
@@ -187,6 +201,10 @@ fun AddonManagerScreen(
 @Composable
 private fun AddonCard(
     addon: Addon,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit,
     onRemove: () -> Unit
 ) {
     Card(
@@ -214,17 +232,48 @@ private fun AddonCard(
                         color = NuvioColors.TextSecondary
                     )
                 }
-                Button(
-                    onClick = onRemove,
-                    colors = ButtonDefaults.colors(
-                        containerColor = NuvioColors.BackgroundCard,
-                        contentColor = NuvioColors.TextSecondary,
-                        focusedContainerColor = NuvioColors.FocusBackground,
-                        focusedContentColor = NuvioColors.Error
-                    ),
-                    shape = ButtonDefaults.shape(RoundedCornerShape(12.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "Remove")
+                    Button(
+                        onClick = onMoveUp,
+                        enabled = canMoveUp,
+                        colors = ButtonDefaults.colors(
+                            containerColor = NuvioColors.BackgroundCard,
+                            contentColor = NuvioColors.TextSecondary,
+                            focusedContainerColor = NuvioColors.FocusBackground,
+                            focusedContentColor = NuvioColors.Primary
+                        ),
+                        shape = ButtonDefaults.shape(RoundedCornerShape(12.dp))
+                    ) {
+                        Icon(imageVector = Icons.Default.ArrowUpward, contentDescription = "Move up")
+                    }
+                    Button(
+                        onClick = onMoveDown,
+                        enabled = canMoveDown,
+                        colors = ButtonDefaults.colors(
+                            containerColor = NuvioColors.BackgroundCard,
+                            contentColor = NuvioColors.TextSecondary,
+                            focusedContainerColor = NuvioColors.FocusBackground,
+                            focusedContentColor = NuvioColors.Primary
+                        ),
+                        shape = ButtonDefaults.shape(RoundedCornerShape(12.dp))
+                    ) {
+                        Icon(imageVector = Icons.Default.ArrowDownward, contentDescription = "Move down")
+                    }
+                    Button(
+                        onClick = onRemove,
+                        colors = ButtonDefaults.colors(
+                            containerColor = NuvioColors.BackgroundCard,
+                            contentColor = NuvioColors.TextSecondary,
+                            focusedContainerColor = NuvioColors.FocusBackground,
+                            focusedContentColor = NuvioColors.Error
+                        ),
+                        shape = ButtonDefaults.shape(RoundedCornerShape(12.dp))
+                    ) {
+                        Text(text = "Remove")
+                    }
                 }
             }
 

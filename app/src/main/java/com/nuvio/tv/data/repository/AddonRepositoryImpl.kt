@@ -52,4 +52,8 @@ class AddonRepositoryImpl @Inject constructor(
     override suspend fun removeAddon(url: String) {
         preferences.removeAddon(url)
     }
+
+    override suspend fun setAddonOrder(urls: List<String>) {
+        preferences.setAddonOrder(urls)
+    }
 }
