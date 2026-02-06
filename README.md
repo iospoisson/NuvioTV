@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="app/src/main/res/drawable/nuvio_text.png" alt="Nuvio" width="300" />
+  <img src="assets/nuviotv.png" alt="NuvioTV" width="300" />
   <br />
   <br />
 

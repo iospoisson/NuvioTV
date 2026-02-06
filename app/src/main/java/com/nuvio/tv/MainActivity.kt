@@ -129,8 +129,8 @@ class MainActivity : ComponentActivity() {
                                 ) {
                                     if (drawerValue == DrawerValue.Open) {
                                         Image(
-                                            painter = painterResource(id = R.drawable.nuvio_text),
-                                            contentDescription = "Nuvio",
+                                            painter = painterResource(id = R.drawable.nuviotv_logo),
+                                            contentDescription = "NuvioTV",
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .height(48.dp)
