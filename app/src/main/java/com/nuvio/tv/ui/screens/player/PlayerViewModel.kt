@@ -19,11 +19,9 @@ import androidx.media3.exoplayer.dash.DashMediaSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.DefaultLoadControl
-import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.common.MimeTypes
-import com.nuvio.tv.data.local.BufferSettings
 import com.nuvio.tv.core.network.NetworkResult
 import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
@@ -351,6 +349,7 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    @androidx.annotation.OptIn(UnstableApi::class)
     @OptIn(UnstableApi::class)
     private fun initializePlayer(url: String, headers: Map<String, String>) {
         if (url.isEmpty()) {
@@ -390,11 +389,6 @@ class PlayerViewModel @Inject constructor(
                         bufferSettings.backBufferDurationMs,
                         bufferSettings.retainBackBufferFromKeyframe
                     )
-                    .setPrioritizeTimeOverSizeThresholds(false)
-                    .build()
-
-                val bandwidthMeter = DefaultBandwidthMeter.Builder(context)
-                    .setInitialBitrateEstimate(50_000_000L) // 50 Mbps initial estimate
                     .build()
 
                 val renderersFactory = DefaultRenderersFactory(context)
@@ -404,7 +398,6 @@ class PlayerViewModel @Inject constructor(
                     // Build ExoPlayer with libass support for ASS/SSA subtitles
                     ExoPlayer.Builder(context)
                         .setLoadControl(loadControl)
-                        .setBandwidthMeter(bandwidthMeter)
                         .buildWithAssSupport(
                             context = context,
                             renderType = libassRenderType,
@@ -415,7 +408,6 @@ class PlayerViewModel @Inject constructor(
                     ExoPlayer.Builder(context)
                         .setRenderersFactory(renderersFactory)
                         .setLoadControl(loadControl)
-                        .setBandwidthMeter(bandwidthMeter)
                         .build()
                 }
 
@@ -497,6 +489,7 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    @androidx.annotation.OptIn(UnstableApi::class)
     @OptIn(UnstableApi::class)
     private fun getOrCreateOkHttpClient(): OkHttpClient {
         return okHttpClient ?: OkHttpClient.Builder()
@@ -509,6 +502,7 @@ class PlayerViewModel @Inject constructor(
             .also { okHttpClient = it }
     }
 
+    @androidx.annotation.OptIn(UnstableApi::class)
     @OptIn(UnstableApi::class)
     private fun createMediaSource(url: String, headers: Map<String, String>): MediaSource {
         val okHttpFactory = OkHttpDataSource.Factory(getOrCreateOkHttpClient()).apply {
@@ -698,6 +692,7 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    @androidx.annotation.OptIn(UnstableApi::class)
     private fun switchToSourceStream(stream: Stream) {
         val url = stream.getStreamUrl()
         if (url.isNullOrBlank()) {

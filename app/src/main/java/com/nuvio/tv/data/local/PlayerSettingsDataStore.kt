@@ -185,7 +185,7 @@ class PlayerSettingsDataStore @Inject constructor(
                 targetBufferSizeMb = prefs[targetBufferSizeMbKey] ?: 0,
                 backBufferDurationMs = prefs[backBufferDurationMsKey] ?: 0,
                 retainBackBufferFromKeyframe = prefs[retainBackBufferFromKeyframeKey] ?: false,
-                useParallelConnections = prefs[useParallelConnectionsKey] ?: true
+                useParallelConnections = prefs[useParallelConnectionsKey] ?: false
             )
         )
     }
